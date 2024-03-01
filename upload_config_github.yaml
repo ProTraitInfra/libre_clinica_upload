@@ -1,0 +1,359 @@
+generic_list:
+  study_oid: S_PROTRAIT
+  study_identifier: ProTRAIT - Generic
+  event_oid: SE_GENERIC
+  form_oid: F_PROTRAIT_GEN_2
+  item_group_oid: IG_PROTR_GEN
+  identifier_colname: GEN_IDNUMBER
+  birthdate_colname: GEN_YEAR_BIRTH
+  birthdate_isyear: TRUE
+  gender_colname: GEN_GENDER
+  item_prefix: I_PROTR_
+  query: |
+    prefix rr: <http://www.w3.org/ns/r2rml#>
+    prefix ex: <http://example.com/ns#>
+    prefix map: <http://mapping.local/>
+    prefix sty: <http://purl.bioontology.org/ontology/STY/>
+    prefix sio: <http://semanticscience.org/resource/SIO_>
+    prefix foaf: <http://xmlns.com/foaf/0.1/>
+    prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+    prefix ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
+    prefix roo: <http://www.cancerdata.org/roo/>
+    prefix icd: <http://purl.bioontology.org/ontology/ICD10/>
+    prefix skos: <http://www.w3.org/2008/05/skos#>
+    prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    prefix uo: <http://purl.obolibrary.org/obo/UO_>
+    prefix time: <http://www.w3.org/2006/time#>
+
+    SELECT DISTINCT
+    ?GEN_YEAR_BIRTH
+    ?GEN_IDNUMBER
+    ?GEN_GENDER
+    ?GEN_AGE
+    ?GEN_EDUCATION
+    ?GEN_RELATION
+    ?GEN_TREAT_CENTRE
+    ?GEN_REFER_CENTRE
+    ?GEN_DATE_REGISTR
+    ?GEN_SMOKING
+    ?GEN_SM_PACKYEARS1
+    ?GEN_SM_PACKYEARS2
+    ?GEN_SM_STOPMONTHS
+    ?GEN_ALCOHOL
+    ?GEN_ALCOHOL_DAYS
+    ?GEN_ALCOHOL_GLASS
+    ?GEN_WEIGHT
+    ?GEN_HEIGHT
+    ?GEN_DATE_DIAGN
+    ?GEN_TUMOURSITE
+    ?GEN_OTHERCANCER
+    ?GEN_OTH_C_SITE
+    ?GEN_OTH_C_ICD
+    ?GEN_OTH_C_DATE
+    ?GEN_OTH_C_RT
+    ?GEN_OTH_C_RT_REIRR
+    ?GEN_RT_TREATMENT
+    ?GEN_PLAN_COMPARISON
+    ?GEN_PLAN_COMP_DATE
+    ?GEN_PLAN_COMP_VERSION
+    ?GEN_COMP_OUTCOME
+    ?GEN_DEC_PROTONS
+    ?GEN_REASON_PROTONS
+    ?GEN_REASON_PROT_OTHER
+
+    WHERE {
+      
+      
+      #DEMOGRAPHIC VARIABLES
+      
+      #Year of birth
+      ?Patient rdf:type ncit:C16960;
+   
+      roo:is_born ?bYear.
+      ?bYear roo:P100027 ?GEN_YEAR_BIRTH. 
+      
+      #ID and Gender
+      OPTIONAL{
+      ?Patient rdf:type ncit:C16960;
+      roo:P100061 ?id.
+      ?id roo:P100042 ?GEN_IDNUMBER.
+      ?Patient roo:P100018 ?gender.
+      ?gender roo:P100042 ?GenderValue.
+
+      BIND(
+      COALESCE(
+      IF (?GenderValue = "V " || ?GenderValue = "female" || ?GenderValue = "f" || ?GenderValue = "2", 2, 1/0),
+      IF (?GenderValue = "M " || ?GenderValue = "male" || ?GenderValue = "m" || ?GenderValue = "1", 1, 1/0),
+      "9" )
+      AS ?GEN_GENDER)
+      }
+      
+      #Age at diagnosis
+      OPTIONAL{
+      ?Patient roo:P100016 ?age.
+      ?age roo:P100042 ?GEN_AGE.
+      FILTER (?GEN_AGE !=0)
+      FILTER (?GEN_AGE !=1)
+      FILTER (?GEN_AGE !=2)
+      FILTER (?GEN_AGE !=3)
+      FILTER (?GEN_AGE !=4)
+      FILTER (?GEN_AGE !=5)
+      FILTER (?GEN_AGE !=6)
+      FILTER (?GEN_AGE !=7)
+      FILTER (?GEN_AGE !=8)
+      FILTER (?GEN_AGE !=9)
+      FILTER (?GEN_AGE !=10)
+      FILTER (?GEN_AGE !=11)
+      FILTER (?GEN_AGE !=12)
+      FILTER (?GEN_AGE !=13)
+      FILTER (?GEN_AGE !=14)
+      FILTER (?GEN_AGE !=15)
+      FILTER (?GEN_AGE !=16)
+      FILTER (?GEN_AGE !=17)
+      FILTER (?GEN_AGE !=18)
+
+        
+    }
+    
+    #Educational level
+    OPTIONAL{
+    ?Patient roo:has_education_level ?educationlevel.
+    ?educationlevel roo:local_value ?GEN_EDUCATION.  }
+    
+    #Relationship status
+    OPTIONAL{
+    ?Patient roo:has_relationship_status ?relStatus.
+    ?relStatus roo:local_value ?GEN_RELATION.}  
+    
+    
+    #TITLE: GENERAL TREATMENT VARIABLES
+    
+    #Particle (treating) centre
+    OPTIONAL{
+    ?Patient roo:P100039 ?treatingCentre.
+    ?treatingCentre roo:local_value ?treatCentreValue.  } 
+     
+    BIND(
+    COALESCE(
+    IF (?treatCentreValue = "Maastro Clinic", "3", 1/0),
+    IF (?treatCentreValue = "met name cochlea rechts van 14.4 naar 38.4 Gy (acceptabel) en brain Dmax van 46.6 naar 60.1 Gy (acceptabel)", "3", 1/0),
+    IF (?treatCentreValue = "null", "0", 1/0),
+    "0" )
+    AS ?GEN_TREAT_CENTRE)
+    
+    #Referring centre
+    OPTIONAL{
+    ?Patient roo:P100039 ?treatingCentre.
+    ?treatingCentre roo:referred_by ?refercentre.
+    ?refercentre roo:local_value ?GEN_REFER_CENTRE.  }
+    
+    #Date of registration (first visit RT department)
+    OPTIONAL{
+    ?Patient roo:P100039 ?treatingCentre.
+    ?treatingCentre roo:has_registration_date ?regDate.
+    ?regDate roo:P100042 ?GEN_DATE_REGISTR.}
+    
+    
+    #RISK FACTORS VARIABLES
+    
+    #Smoking status
+    OPTIONAL{
+    ?Patient roo:P100306 ?smokingStatus.
+    ?smokingStatus roo:local_value ?Has_GEN_SMOKING.}
+    
+    BIND (
+      COALESCE (
+        IF (?Has_GEN_SMOKING = "Yes, in the past (ex-smoker)" || ?Has_GEN_SMOKING = "1", "1",
+          COALESCE(
+            IF (?Has_GEN_SMOKING = "Yes, current smoker" || ?Has_GEN_SMOKING = "2", "2",
+              COALESCE(
+                IF (?Has_GEN_SMOKING = "No" || ?Has_GEN_SMOKING = "0", "0", ?Has_GEN_SMOKING),
+                ?Has_GEN_SMOKING)
+            ),
+            ?Has_GEN_SMOKING)
+        ),
+        ?Has_GEN_SMOKING
+      ) AS ?GEN_SMOKING
+    )
+    
+    #If patient is a past smoker, number of stopped months
+    OPTIONAL{        
+    ?Patient roo:P100306 ?smokingStatus. 
+    ?smokingStatus roo:has_time_stopped_smoking ?timeStopped.
+    ?timeStopped roo:P100042 ?GEN_SM_STOPMONTHS.}
+    
+    #Current alcohol use
+    OPTIONAL{
+    ?Patient roo:P100022 ?alcoholUseHistory.
+    ?alcoholUseHistory roo:local_value ?GEN_ALCOHOL.}
+    
+    #If yes, number of days per month when >=1 glasses
+    OPTIONAL{
+    ?Patient roo:P100022 ?alcUseHist.
+    ?alcUseHist roo:P100423 ?alcDays.
+    ?alcDays rdf:type roo:daysWithMoreThan1Glass;
+    roo:local_value ?GEN_ALCOHOL_DAYS.}
+    
+    #If yes, number of glasses per day
+    OPTIONAL{
+    ?Patient roo:P100022 ?alcUseHist.
+    ?alcUseHist roo:P100423 ?alcGlass.
+    ?alcGlass rdf:type roo:numberOfGlasses;
+    roo:local_value ?GEN_ALCOHOL_GLASS.}
+    
+    
+    #BASELINE CLINICAL FACTORS VARIABLES
+    
+    #Weight
+    OPTIONAL{
+    ?Patient roo:P100249 ?bodyWeight.
+    ?bodyWeight roo:P100042 ?Has_GEN_WEIGHT.
+    BIND(COALESCE(ROUND(xsd:decimal(?Has_GEN_WEIGHT)), 0) AS ?GEN_WEIGHT)
+    }
+    
+    #Height
+    OPTIONAL{
+    ?Patient roo:P100248 ?bodyHeight.
+    ?bodyHeight roo:P100042 ?GEN_HEIGHT.
+    }
+    
+    
+    #BASELINE TUMOUR FACTORS VARIABLES
+    
+    #Date of first diagnosis (first pathology)
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.
+    ?neoplasm roo:P100251 ?dateOfDiag. 
+    ?dateOfDiag roo:P100042 ?GEN_DATE_DIAGN.}
+    
+    #Tumour site
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.
+    ?neoplasm roo:P100202 ?tumoursite.
+    ?tumoursite roo:local_value ?GEN_TUMOURSITE}
+    
+    
+    #CURRENT SECOND AND PREVIOUS CANCERS AND CANCER TREATMENTS VARIABLES
+    
+    #Current second or previous cancer
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.     
+    ?neoplasm roo:has_previous_neoplasm ?previousNeoplasm. 
+    ?previousNeoplasm roo:P100042 ?GEN_OTHERCANCER.} 
+    
+    #If yes, tumour site
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.     
+    ?neoplasm roo:has_previous_neoplasm ?previousNeoplasm. 
+    ?previousNeoplasm roo:P100202 ?prevLocation.
+    ?prevLocation roo:local_value ?GEN_OTH_C_SITE.}
+    
+    #If yes, type ICD-O-3 (IKNL)
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.     
+    ?neoplasm roo:has_previous_neoplasm ?previousNeoplasm. 
+    ?previousNeoplasm roo:has_ICD_code ?iCDCode.
+    ?iCDCode roo:P100042 ?GEN_OTH_C_ICD.}
+    
+    #If yes, when
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.     
+    ?neoplasm roo:has_previous_neoplasm ?previousNeoplasm. 
+    ?previousNeoplasm roo:P100251 ?neoplasmDate.
+    ?neoplasmDate roo:P100042 ?GEN_OTH_C_DATE.}
+    
+    #If yes, radiotherapy
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.     
+    ?neoplasm roo:has_previous_neoplasm ?previousNeoplasm. 
+    ?previousNeoplasm roo:has_previous_RT ?prevRadiotherapy.
+    ?prevRadiotherapy roo:P100042 ?GEN_OTH_C_RT.}
+    
+    
+    #OTHER CURRENT OR PREVIOUS CANCER AND CANCER TREATMENTS (2) VARIABLES
+    #Not used in the current version of the study
+    
+    
+    #OTHER CURRENT OR PREVIOUS CANCER AND CANCER TREATMENTS (3) VARIABLES
+    #Not used in the current version of the study
+    
+    
+    #RE-IRRADIATION VARIABLES
+    
+    #If yes, previous radiotherapy, re-irradiation
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.
+    ?neoplasm roo:is_reirridiation ?reirradiation.
+    ?reirradiation roo:P100042 ?Has_GEN_OTH_C_RT_REIRR}
+    
+    BIND(
+      COALESCE(
+        IF (?Has_GEN_OTH_C_RT_REIRR = "YES" || ?Has_GEN_OTH_C_RT_REIRR = "Yes" || ?Has_GEN_OTH_C_RT_REIRR = "yes" || ?Has_GEN_OTH_C_RT_REIRR = "1", 1, 1/0),
+        IF (?Has_GEN_OTH_C_RT_REIRR = "NO" || ?Has_GEN_OTH_C_RT_REIRR = "No" || ?Has_GEN_OTH_C_RT_REIRR = "no" || ?Has_GEN_OTH_C_RT_REIRR = "0", 0, 1/0))
+    AS ?GEN_OTH_C_RT_REIRR)
+    
+    
+    #SELECTION OF THERAPY VARIABLES
+    
+    #Treatment technique
+    OPTIONAL{
+    ?Patient roo:P100020 ?neoplasm.
+    ?neoplasm roo:P100403 ?radiotherapyTreatmentTechnique.
+    ?radiotherapyTreatmentTechnique roo:local_value ?GEN_RT_TREATMENT}
+    
+    #Planning comparison performed
+    OPTIONAL{  
+    ?Patient roo:P100024 ?radiotherapy.
+    ?radiotherapy roo:has_planning_comparison ?plancomp.         
+    ?plancomp roo:P100228 ?plancompdate.
+    ?plancompdate roo:P100042 ?GEN_PLAN_COMP_DATE.}
+         
+    BIND(BOUND(?GEN_PLAN_COMP_DATE) as ?Has_GEN_PLAN_COMP_DATE)
+
+    BIND(
+      COALESCE(
+        IF (?Has_GEN_PLAN_COMP_DATE, "1", "0"),
+        "9"
+      ) AS ?GEN_PLAN_COMPARISON
+    )
+    
+    #Version planning comparison tool (version LIPP protocol)
+    OPTIONAL{
+    ?Patient roo:P100024 ?radiotherapy.
+    ?radiotherapy roo:has_planning_comparison ?planningComparison.     
+    ?planningComparison roo:has_version ?planVersion.
+    ?planVersion roo:P100042 ?GEN_PLAN_COMP_VERSION.}
+    
+    #Outcome planning comparison
+    OPTIONAL{
+    ?Patient roo:P100024 ?radiotherapy.
+    ?radiotherapy roo:has_planning_comparison ?planningComparison.
+    ?planningComparison roo:has_planning_comparison_outcome ?planOutcome.
+    ?planOutcome roo:local_value ?GEN_COMP_OUTCOME.}
+    
+    # Proton radiotherapy
+    OPTIONAL{
+    ?Patient roo:P100024 ?radiotherapy.
+    ?radiotherapy roo:has_planning_comparison ?planningComparison.
+    ?planningComparison roo:P100397 ?protonTherapy.
+    ?protonTherapy roo:P100042 ?GEN_DEC_PROTONS.}
+    
+    #If DSS positive, but NO proton therapy given, reason (multi-select
+    OPTIONAL{
+    ?Patient roo:P100024 ?radiotherapy.
+    ?radiotherapy roo:has_planning_comparison ?planningComparison.
+    ?planningComparison roo:has_reason_for_proton_therapy_rejection ?reasonNoProton.
+    ?reasonNoProton roo:local_value ?GEN_REASON_PROTONS.}
+    
+    #If other, namely	
+    OPTIONAL{
+    ?Patient roo:P100024 ?radiotherapy.
+    ?radiotherapy roo:has_planning_comparison ?planningComparison.
+    ?planningComparison roo:has_reason_for_proton_therapy_rejection_other ?reasonProtonOther.
+    ?reasonProtonOther roo:local_value ?GEN_REASON_PROT_OTH.}
+    
+
+    }
+
+
